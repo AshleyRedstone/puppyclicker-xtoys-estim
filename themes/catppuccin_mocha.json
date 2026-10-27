@@ -1,0 +1,86 @@
+{
+  "name": "Catppuccin Mocha",
+  "appearance": "dark",
+  "colours": {
+    "window_background": "#1E1E2E",
+    "log_background": "#181825",
+    "channel_selected_text": "#11111B",
+    "card_background": "#181825",
+    "primary_button_text": "#11111B",
+    "countdown_card_background": "#313244",
+    "input_background": "#313244",
+    "channel_unselected_background": "#313244",
+    "dropdown_background": "#313244",
+    "channel_unselected_hover": "#45475A",
+    "progress_track": "#45475A",
+    "input_border": "#585B70",
+    "dropdown_button": "#45475A",
+    "dropdown_button_hover": "#585B70",
+    "emergency_button": "#F38BA8",
+    "emergency_button_hover": "#EBA0AC",
+    "subtitle_text": "#A6ADC8",
+    "primary_button": "#CBA6F7",
+    "log_text": "#CDD6F4",
+    "accent": "#CBA6F7",
+    "countdown_progress": "#CBA6F7",
+    "countdown_caption": "#BAC2DE",
+    "primary_button_hover": "#B4BEFE",
+    "connection_status_text": "#CDD6F4",
+    "click_count_text": "#BAC2DE",
+    "intensity_value_text": "#CBA6F7",
+    "body_text": "#CDD6F4",
+    "slider_thumb": "#B4BEFE",
+    "app_title_text": "#CDD6F4",
+    "countdown_text": "#CDD6F4",
+    "emergency_button_text": "#11111B",
+    "switch_thumb": "#CDD6F4"
+  },
+  "fonts": {
+    "default": {
+      "family": "Segoe UI",
+      "size": 14,
+      "weight": "normal"
+    },
+    "title": {
+      "size": 29,
+      "weight": "bold"
+    },
+    "section_heading": {
+      "size": 17,
+      "weight": "bold"
+    },
+    "control_heading": {
+      "size": 15,
+      "weight": "bold"
+    },
+    "status": {
+      "size": 14,
+      "weight": "bold"
+    },
+    "countdown": {
+      "size": 48,
+      "weight": "bold"
+    },
+    "caption": {
+      "size": 13
+    },
+    "value": {
+      "size": 13,
+      "weight": "bold"
+    },
+    "button": {
+      "size": 14,
+      "weight": "bold"
+    },
+    "dropdown": {
+      "size": 13
+    },
+    "input": {
+      "size": 14
+    },
+    "log": {
+      "family": "Consolas",
+      "size": 12
+    }
+  }
+}

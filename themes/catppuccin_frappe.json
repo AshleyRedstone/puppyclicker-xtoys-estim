@@ -1,0 +1,86 @@
+{
+  "name": "Catppuccin Frappe",
+  "appearance": "dark",
+  "colours": {
+    "window_background": "#303446",
+    "log_background": "#292C3C",
+    "channel_selected_text": "#232634",
+    "card_background": "#292C3C",
+    "primary_button_text": "#232634",
+    "countdown_card_background": "#414559",
+    "input_background": "#414559",
+    "channel_unselected_background": "#414559",
+    "dropdown_background": "#414559",
+    "channel_unselected_hover": "#51576D",
+    "progress_track": "#51576D",
+    "input_border": "#626880",
+    "dropdown_button": "#51576D",
+    "dropdown_button_hover": "#626880",
+    "emergency_button": "#E78284",
+    "emergency_button_hover": "#EA999C",
+    "subtitle_text": "#A5ADCE",
+    "primary_button": "#CA9EE6",
+    "log_text": "#C6D0F5",
+    "accent": "#CA9EE6",
+    "countdown_progress": "#CA9EE6",
+    "countdown_caption": "#B5BFE2",
+    "primary_button_hover": "#BABBF1",
+    "connection_status_text": "#C6D0F5",
+    "click_count_text": "#B5BFE2",
+    "intensity_value_text": "#CA9EE6",
+    "body_text": "#C6D0F5",
+    "slider_thumb": "#BABBF1",
+    "app_title_text": "#C6D0F5",
+    "countdown_text": "#C6D0F5",
+    "emergency_button_text": "#232634",
+    "switch_thumb": "#C6D0F5"
+  },
+  "fonts": {
+    "default": {
+      "family": "Segoe UI",
+      "size": 14,
+      "weight": "normal"
+    },
+    "title": {
+      "size": 29,
+      "weight": "bold"
+    },
+    "section_heading": {
+      "size": 17,
+      "weight": "bold"
+    },
+    "control_heading": {
+      "size": 15,
+      "weight": "bold"
+    },
+    "status": {
+      "size": 14,
+      "weight": "bold"
+    },
+    "countdown": {
+      "size": 48,
+      "weight": "bold"
+    },
+    "caption": {
+      "size": 13
+    },
+    "value": {
+      "size": 13,
+      "weight": "bold"
+    },
+    "button": {
+      "size": 14,
+      "weight": "bold"
+    },
+    "dropdown": {
+      "size": 13
+    },
+    "input": {
+      "size": 14
+    },
+    "log": {
+      "family": "Consolas",
+      "size": 12
+    }
+  }
+}

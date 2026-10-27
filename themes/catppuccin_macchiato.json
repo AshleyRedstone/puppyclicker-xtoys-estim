@@ -1,0 +1,86 @@
+{
+  "name": "Catppuccin Macchiato",
+  "appearance": "dark",
+  "colours": {
+    "window_background": "#24273A",
+    "log_background": "#1E2030",
+    "channel_selected_text": "#181926",
+    "card_background": "#1E2030",
+    "primary_button_text": "#181926",
+    "countdown_card_background": "#363A4F",
+    "input_background": "#363A4F",
+    "channel_unselected_background": "#363A4F",
+    "dropdown_background": "#363A4F",
+    "channel_unselected_hover": "#494D64",
+    "progress_track": "#494D64",
+    "input_border": "#5B6078",
+    "dropdown_button": "#494D64",
+    "dropdown_button_hover": "#5B6078",
+    "emergency_button": "#ED8796",
+    "emergency_button_hover": "#EE99A0",
+    "subtitle_text": "#A5ADCB",
+    "primary_button": "#C6A0F6",
+    "log_text": "#CAD3F5",
+    "accent": "#C6A0F6",
+    "countdown_progress": "#C6A0F6",
+    "countdown_caption": "#B8C0E0",
+    "primary_button_hover": "#B7BDF8",
+    "connection_status_text": "#CAD3F5",
+    "click_count_text": "#B8C0E0",
+    "intensity_value_text": "#C6A0F6",
+    "body_text": "#CAD3F5",
+    "slider_thumb": "#B7BDF8",
+    "app_title_text": "#CAD3F5",
+    "countdown_text": "#CAD3F5",
+    "emergency_button_text": "#181926",
+    "switch_thumb": "#CAD3F5"
+  },
+  "fonts": {
+    "default": {
+      "family": "Segoe UI",
+      "size": 14,
+      "weight": "normal"
+    },
+    "title": {
+      "size": 29,
+      "weight": "bold"
+    },
+    "section_heading": {
+      "size": 17,
+      "weight": "bold"
+    },
+    "control_heading": {
+      "size": 15,
+      "weight": "bold"
+    },
+    "status": {
+      "size": 14,
+      "weight": "bold"
+    },
+    "countdown": {
+      "size": 48,
+      "weight": "bold"
+    },
+    "caption": {
+      "size": 13
+    },
+    "value": {
+      "size": 13,
+      "weight": "bold"
+    },
+    "button": {
+      "size": 14,
+      "weight": "bold"
+    },
+    "dropdown": {
+      "size": 13
+    },
+    "input": {
+      "size": 14
+    },
+    "log": {
+      "family": "Consolas",
+      "size": 12
+    }
+  }
+}

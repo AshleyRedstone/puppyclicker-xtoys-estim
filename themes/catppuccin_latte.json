@@ -1,0 +1,86 @@
+{
+  "name": "Catppuccin Latte",
+  "appearance": "light",
+  "colours": {
+    "window_background": "#EFF1F5",
+    "log_background": "#E6E9EF",
+    "channel_selected_text": "#EFF1F5",
+    "card_background": "#FFFFFF",
+    "primary_button_text": "#FFFFFF",
+    "countdown_card_background": "#E6E9EF",
+    "input_background": "#E6E9EF",
+    "channel_unselected_background": "#CCD0DA",
+    "dropdown_background": "#CCD0DA",
+    "channel_unselected_hover": "#BCC0CC",
+    "progress_track": "#CCD0DA",
+    "input_border": "#BCC0CC",
+    "dropdown_button": "#BCC0CC",
+    "dropdown_button_hover": "#ACB0BE",
+    "emergency_button": "#D20F39",
+    "emergency_button_hover": "#E64553",
+    "subtitle_text": "#6C6F85",
+    "primary_button": "#8839EF",
+    "log_text": "#4C4F69",
+    "accent": "#8839EF",
+    "countdown_progress": "#8839EF",
+    "countdown_caption": "#5C5F77",
+    "primary_button_hover": "#7287FD",
+    "connection_status_text": "#4C4F69",
+    "click_count_text": "#5C5F77",
+    "intensity_value_text": "#8839EF",
+    "body_text": "#4C4F69",
+    "slider_thumb": "#7287FD",
+    "app_title_text": "#4C4F69",
+    "countdown_text": "#4C4F69",
+    "emergency_button_text": "#FFFFFF",
+    "switch_thumb": "#FFFFFF"
+  },
+  "fonts": {
+    "default": {
+      "family": "Segoe UI",
+      "size": 14,
+      "weight": "normal"
+    },
+    "title": {
+      "size": 29,
+      "weight": "bold"
+    },
+    "section_heading": {
+      "size": 17,
+      "weight": "bold"
+    },
+    "control_heading": {
+      "size": 15,
+      "weight": "bold"
+    },
+    "status": {
+      "size": 14,
+      "weight": "bold"
+    },
+    "countdown": {
+      "size": 48,
+      "weight": "bold"
+    },
+    "caption": {
+      "size": 13
+    },
+    "value": {
+      "size": 13,
+      "weight": "bold"
+    },
+    "button": {
+      "size": 14,
+      "weight": "bold"
+    },
+    "dropdown": {
+      "size": 13
+    },
+    "input": {
+      "size": 14
+    },
+    "log": {
+      "family": "Consolas",
+      "size": 12
+    }
+  }
+}

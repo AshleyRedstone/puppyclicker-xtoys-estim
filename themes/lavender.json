@@ -1,0 +1,86 @@
+{
+  "name": "Lavender Dark",
+  "appearance": "dark",
+  "colours": {
+    "window_background": "#101218",
+    "log_background": "#13161D",
+    "channel_selected_text": "#171321",
+    "card_background": "#1C2029",
+    "primary_button_text": "#20172F",
+    "countdown_card_background": "#2B233D",
+    "input_background": "#2C303A",
+    "channel_unselected_background": "#30323C",
+    "dropdown_background": "#343044",
+    "channel_unselected_hover": "#414352",
+    "progress_track": "#4D405E",
+    "input_border": "#4E4B5A",
+    "dropdown_button": "#54446F",
+    "dropdown_button_hover": "#69558A",
+    "emergency_button": "#713E49",
+    "emergency_button_hover": "#8C4C59",
+    "subtitle_text": "#B9B6C8",
+    "primary_button": "#BBA0EA",
+    "log_text": "#C7C9D4",
+    "accent": "#C9A7FF",
+    "countdown_progress": "#CBA8FF",
+    "countdown_caption": "#CBBDE2",
+    "primary_button_hover": "#D0B7FF",
+    "connection_status_text": "#D6C5F4",
+    "click_count_text": "#D7C6EE",
+    "intensity_value_text": "#D8C0FF",
+    "body_text": "#E4E4ED",
+    "slider_thumb": "#E5D4FF",
+    "app_title_text": "#F0E9FF",
+    "countdown_text": "#F6EDFF",
+    "emergency_button_text": "#FFE3E7",
+    "switch_thumb": "#FFFFFF"
+  },
+  "fonts": {
+    "default": {
+      "family": "Segoe UI",
+      "size": 14,
+      "weight": "normal"
+    },
+    "title": {
+      "size": 29,
+      "weight": "bold"
+    },
+    "section_heading": {
+      "size": 17,
+      "weight": "bold"
+    },
+    "control_heading": {
+      "size": 15,
+      "weight": "bold"
+    },
+    "status": {
+      "size": 14,
+      "weight": "bold"
+    },
+    "countdown": {
+      "size": 48,
+      "weight": "bold"
+    },
+    "caption": {
+      "size": 13
+    },
+    "value": {
+      "size": 13,
+      "weight": "bold"
+    },
+    "button": {
+      "size": 14,
+      "weight": "bold"
+    },
+    "dropdown": {
+      "size": 13
+    },
+    "input": {
+      "size": 14
+    },
+    "log": {
+      "family": "Consolas",
+      "size": 12
+    }
+  }
+}
