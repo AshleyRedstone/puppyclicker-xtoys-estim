@@ -1,0 +1,91 @@
+{
+  "name": "Nord",
+  "appearance": "dark",
+  "colours": {
+    "window_background": "#2E3440",
+    "log_background": "#2E3440",
+    "channel_selected_text": "#2E3440",
+    "card_background": "#3B4252",
+    "primary_button_text": "#2E3440",
+    "countdown_card_background": "#434C5E",
+    "input_background": "#434C5E",
+    "channel_unselected_background": "#4C566A",
+    "dropdown_background": "#4C566A",
+    "channel_unselected_hover": "#434C5E",
+    "progress_track": "#4C566A",
+    "input_border": "#4C566A",
+    "dropdown_button": "#434C5E",
+    "dropdown_button_hover": "#81A1C1",
+    "emergency_button": "#BF616A",
+    "emergency_button_hover": "#D08770",
+    "subtitle_text": "#D8DEE9",
+    "primary_button": "#88C0D0",
+    "log_text": "#ECEFF4",
+    "accent": "#88C0D0",
+    "countdown_progress": "#88C0D0",
+    "countdown_caption": "#D8DEE9",
+    "primary_button_hover": "#81A1C1",
+    "connection_status_text": "#81A1C1",
+    "click_count_text": "#D8DEE9",
+    "intensity_value_text": "#88C0D0",
+    "body_text": "#ECEFF4",
+    "slider_thumb": "#81A1C1",
+    "app_title_text": "#ECEFF4",
+    "countdown_text": "#ECEFF4",
+    "emergency_button_text": "#2E3440",
+    "switch_thumb": "#FFFFFF",
+    "dropdown_menu_background": "#353C49",
+    "dropdown_menu_selected": "#4C566A",
+    "dropdown_menu_hover": "#58677D",
+    "dropdown_menu_text": "#ECEFF4",
+    "dropdown_menu_scrollbar": "#66758B"
+  },
+  "fonts": {
+    "default": {
+      "family": "Segoe UI",
+      "size": 14,
+      "weight": "normal"
+    },
+    "title": {
+      "size": 29,
+      "weight": "bold"
+    },
+    "section_heading": {
+      "size": 17,
+      "weight": "bold"
+    },
+    "control_heading": {
+      "size": 15,
+      "weight": "bold"
+    },
+    "status": {
+      "size": 14,
+      "weight": "bold"
+    },
+    "countdown": {
+      "size": 48,
+      "weight": "bold"
+    },
+    "caption": {
+      "size": 13
+    },
+    "value": {
+      "size": 13,
+      "weight": "bold"
+    },
+    "button": {
+      "size": 14,
+      "weight": "bold"
+    },
+    "dropdown": {
+      "size": 13
+    },
+    "input": {
+      "size": 14
+    },
+    "log": {
+      "family": "Consolas",
+      "size": 12
+    }
+  }
+}

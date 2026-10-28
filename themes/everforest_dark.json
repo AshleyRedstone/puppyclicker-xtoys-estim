@@ -1,0 +1,91 @@
+{
+  "name": "Everforest Dark",
+  "appearance": "dark",
+  "colours": {
+    "window_background": "#2D353B",
+    "log_background": "#2D353B",
+    "channel_selected_text": "#2D353B",
+    "card_background": "#343F44",
+    "primary_button_text": "#2D353B",
+    "countdown_card_background": "#3D484D",
+    "input_background": "#3D484D",
+    "channel_unselected_background": "#475258",
+    "dropdown_background": "#475258",
+    "channel_unselected_hover": "#3D484D",
+    "progress_track": "#475258",
+    "input_border": "#475258",
+    "dropdown_button": "#3D484D",
+    "dropdown_button_hover": "#7FBBB3",
+    "emergency_button": "#E67E80",
+    "emergency_button_hover": "#F4A3A5",
+    "subtitle_text": "#9DA9A0",
+    "primary_button": "#A7C080",
+    "log_text": "#D3C6AA",
+    "accent": "#A7C080",
+    "countdown_progress": "#A7C080",
+    "countdown_caption": "#9DA9A0",
+    "primary_button_hover": "#7FBBB3",
+    "connection_status_text": "#7FBBB3",
+    "click_count_text": "#9DA9A0",
+    "intensity_value_text": "#A7C080",
+    "body_text": "#D3C6AA",
+    "slider_thumb": "#7FBBB3",
+    "app_title_text": "#D3C6AA",
+    "countdown_text": "#D3C6AA",
+    "emergency_button_text": "#2D353B",
+    "switch_thumb": "#FFFFFF",
+    "dropdown_menu_background": "#2D353B",
+    "dropdown_menu_selected": "#475258",
+    "dropdown_menu_hover": "#56645F",
+    "dropdown_menu_text": "#D3C6AA",
+    "dropdown_menu_scrollbar": "#6A766D"
+  },
+  "fonts": {
+    "default": {
+      "family": "Segoe UI",
+      "size": 14,
+      "weight": "normal"
+    },
+    "title": {
+      "size": 29,
+      "weight": "bold"
+    },
+    "section_heading": {
+      "size": 17,
+      "weight": "bold"
+    },
+    "control_heading": {
+      "size": 15,
+      "weight": "bold"
+    },
+    "status": {
+      "size": 14,
+      "weight": "bold"
+    },
+    "countdown": {
+      "size": 48,
+      "weight": "bold"
+    },
+    "caption": {
+      "size": 13
+    },
+    "value": {
+      "size": 13,
+      "weight": "bold"
+    },
+    "button": {
+      "size": 14,
+      "weight": "bold"
+    },
+    "dropdown": {
+      "size": 13
+    },
+    "input": {
+      "size": 14
+    },
+    "log": {
+      "family": "Consolas",
+      "size": 12
+    }
+  }
+}

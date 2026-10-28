@@ -33,7 +33,12 @@
     "app_title_text": "#C6D0F5",
     "countdown_text": "#C6D0F5",
     "emergency_button_text": "#232634",
-    "switch_thumb": "#C6D0F5"
+    "switch_thumb": "#C6D0F5",
+    "dropdown_menu_background": "#292C3C",
+    "dropdown_menu_selected": "#414559",
+    "dropdown_menu_hover": "#51576D",
+    "dropdown_menu_text": "#C6D0F5",
+    "dropdown_menu_scrollbar": "#626880"
   },
   "fonts": {
     "default": {

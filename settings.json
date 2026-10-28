@@ -2,7 +2,7 @@
   "click_seconds": 5.0,
   "max_remaining": 120.0,
   "language": "en",
-  "theme": "catppuccin_mocha",
+  "theme": "nord",
   "channel": "Both",
   "intensity_a": 45,
   "intensity_b": 100

@@ -1,0 +1,91 @@
+{
+  "name": "Tokyo Night",
+  "appearance": "dark",
+  "colours": {
+    "window_background": "#1A1B26",
+    "log_background": "#1A1B26",
+    "channel_selected_text": "#1A1B26",
+    "card_background": "#24283B",
+    "primary_button_text": "#1A1B26",
+    "countdown_card_background": "#292E42",
+    "input_background": "#292E42",
+    "channel_unselected_background": "#414868",
+    "dropdown_background": "#414868",
+    "channel_unselected_hover": "#292E42",
+    "progress_track": "#414868",
+    "input_border": "#414868",
+    "dropdown_button": "#292E42",
+    "dropdown_button_hover": "#BB9AF7",
+    "emergency_button": "#F7768E",
+    "emergency_button_hover": "#FF899D",
+    "subtitle_text": "#9AA5CE",
+    "primary_button": "#7AA2F7",
+    "log_text": "#C0CAF5",
+    "accent": "#7AA2F7",
+    "countdown_progress": "#7AA2F7",
+    "countdown_caption": "#9AA5CE",
+    "primary_button_hover": "#BB9AF7",
+    "connection_status_text": "#BB9AF7",
+    "click_count_text": "#9AA5CE",
+    "intensity_value_text": "#7AA2F7",
+    "body_text": "#C0CAF5",
+    "slider_thumb": "#BB9AF7",
+    "app_title_text": "#C0CAF5",
+    "countdown_text": "#C0CAF5",
+    "emergency_button_text": "#1A1B26",
+    "switch_thumb": "#FFFFFF",
+    "dropdown_menu_background": "#1A1B26",
+    "dropdown_menu_selected": "#36405D",
+    "dropdown_menu_hover": "#414868",
+    "dropdown_menu_text": "#C0CAF5",
+    "dropdown_menu_scrollbar": "#565F89"
+  },
+  "fonts": {
+    "default": {
+      "family": "Segoe UI",
+      "size": 14,
+      "weight": "normal"
+    },
+    "title": {
+      "size": 29,
+      "weight": "bold"
+    },
+    "section_heading": {
+      "size": 17,
+      "weight": "bold"
+    },
+    "control_heading": {
+      "size": 15,
+      "weight": "bold"
+    },
+    "status": {
+      "size": 14,
+      "weight": "bold"
+    },
+    "countdown": {
+      "size": 48,
+      "weight": "bold"
+    },
+    "caption": {
+      "size": 13
+    },
+    "value": {
+      "size": 13,
+      "weight": "bold"
+    },
+    "button": {
+      "size": 14,
+      "weight": "bold"
+    },
+    "dropdown": {
+      "size": 13
+    },
+    "input": {
+      "size": 14
+    },
+    "log": {
+      "family": "Consolas",
+      "size": 12
+    }
+  }
+}

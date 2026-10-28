@@ -135,7 +135,15 @@ REQUIRED_COLOURS = set(LEGACY_COLOURS.values())
 THEME = load_theme()
 
 def theme_colour(key):
-    return THEME["colours"][key]
+    colours = THEME["colours"]
+    fallback = {
+        "dropdown_menu_background": "dropdown_background",
+        "dropdown_menu_selected": "dropdown_button",
+        "dropdown_menu_hover": "dropdown_button_hover",
+        "dropdown_menu_text": "body_text",
+        "dropdown_menu_scrollbar": "dropdown_button",
+    }
+    return colours[key] if key in colours else colours[fallback[key]]
 
 def theme_font(role="body", size=None, weight=None):
     """Resolve a font role from the selected external theme."""
@@ -405,6 +413,172 @@ class Bridge:
         self.halt('Application closing', latch=True)
 
 
+class StyledDropdown(ctk.CTkFrame):
+    """Persistent themed selector with a rounded, content-sized popup."""
+    MIN_WIDTH = 110
+    ROW_HEIGHT = 38
+    MAX_POPUP_HEIGHT = 340
+    POPUP_PADDING = 8
+    TRANSPARENT_KEY = "#010203"
+
+    def __init__(self, master, values, variable, command, width=110):
+        self.values = list(values)
+        self.variable = variable
+        self.command = command
+        self.menu = None
+        self.width = max(self.MIN_WIDTH, width)
+        super().__init__(master, fg_color="transparent", width=self.width, height=34)
+        self.button = ctk.CTkButton(
+            self, text="", width=self.width, height=34, corner_radius=14,
+            anchor="w", command=self.toggle, font=theme_font("dropdown"))
+        self.button.pack(fill="x")
+        self.refresh_style()
+
+    def _measure_label(self, label):
+        from tkinter import font as tkfont
+        font = self.button.cget("font")
+        try:
+            if isinstance(font, ctk.CTkFont):
+                font = tkfont.Font(family=font.cget("family"), size=font.cget("size"),
+                                   weight=font.cget("weight"))
+            return font.measure(str(label))
+        except (tk.TclError, AttributeError, TypeError):
+            return len(str(label)) * 8
+
+    def _content_width(self):
+        # Size this selector independently from its currently selected label.
+        return max(self.MIN_WIDTH, self._measure_label(self.variable.get()) + 48)
+
+    def _popup_width(self):
+        return max(self.width, max((self._measure_label(item) for item in self.values),
+                                   default=0) + 54)
+
+    def set_button_width(self, width):
+        self.width = width
+        self.configure(width=width)
+        self.button.configure(width=width)
+
+    def refresh_style(self):
+        self.width = self._content_width()
+        self.configure(width=self.width)
+        self.button.configure(
+            width=self.width, text=f"{self.variable.get()}  ▾",
+            fg_color=theme_colour("dropdown_background"),
+            hover_color=theme_colour("dropdown_button_hover"),
+            text_color=theme_colour("body_text"),
+            font=theme_font("dropdown"))
+        if self.menu is not None:
+            self.close_menu()
+
+    def set_values(self, values):
+        self.values = list(values)
+        self.refresh_style()
+
+    def toggle(self):
+        if self.menu is not None and self.menu.winfo_exists():
+            self.close_menu()
+        else:
+            self.open_menu()
+
+    def open_menu(self):
+        self.close_menu()
+        self.update_idletasks()
+        popup = ctk.CTkToplevel(self)
+        self.menu = popup
+        popup.withdraw()
+        popup.overrideredirect(True)
+        popup.attributes("-topmost", True)
+        # On Windows, make the corners of the actual top-level window transparent.
+        # The CTkFrame inside it draws the rounded visible popup.
+        rounded_window = False
+        if sys.platform == "win32":
+            try:
+                popup.configure(fg_color=self.TRANSPARENT_KEY)
+                popup.wm_attributes("-transparentcolor", self.TRANSPARENT_KEY)
+                rounded_window = True
+            except tk.TclError:
+                pass
+        if not rounded_window:
+            popup.configure(fg_color=theme_colour("dropdown_menu_background"))
+
+        menu_width = max(self._popup_width(), self.winfo_width())
+        natural_height = len(self.values) * self.ROW_HEIGHT + self.POPUP_PADDING * 2
+        menu_height = min(max(self.ROW_HEIGHT + 16, natural_height), self.MAX_POPUP_HEIGHT)
+        needs_scroll = natural_height > self.MAX_POPUP_HEIGHT
+        x = self.winfo_rootx()
+        y = self.winfo_rooty() + self.winfo_height() + 5
+        if y + menu_height > popup.winfo_screenheight() - 12:
+            y = max(12, self.winfo_rooty() - menu_height - 5)
+        x = min(x, max(0, popup.winfo_screenwidth() - menu_width - 12))
+        popup.geometry(f"{menu_width}x{menu_height}+{x}+{y}")
+
+        container = ctk.CTkFrame(
+            popup, corner_radius=14, border_width=0,
+            fg_color=theme_colour("dropdown_menu_background"))
+        container.pack(fill="both", expand=True)
+        if needs_scroll:
+            content = ctk.CTkScrollableFrame(
+                container, corner_radius=0,
+                fg_color=theme_colour("dropdown_menu_background"),
+                scrollbar_fg_color=theme_colour("dropdown_menu_background"),
+                scrollbar_button_color=theme_colour("dropdown_menu_scrollbar"),
+                scrollbar_button_hover_color=theme_colour("dropdown_menu_hover"))
+        else:
+            # No canvas or scrollbar for short menus (e.g. two languages).
+            content = ctk.CTkFrame(container, corner_radius=0, fg_color="transparent")
+        content.pack(fill="both", expand=True, padx=4, pady=8)
+        for item in self.values:
+            selected = item == self.variable.get()
+            label = ("✓  " if selected else "    ") + item
+            ctk.CTkButton(
+                content, text=label, anchor="w", height=32, corner_radius=9,
+                fg_color=theme_colour("dropdown_menu_selected") if selected else "transparent",
+                hover_color=theme_colour("dropdown_menu_hover"),
+                text_color=theme_colour("dropdown_menu_text"), font=theme_font("dropdown"),
+                command=lambda choice=item: self.choose(choice)
+            ).pack(fill="x", padx=4, pady=3)
+        popup.bind("<Escape>", lambda event: self.close_menu())
+        popup.bind("<FocusOut>", self._focus_out)
+        popup.deiconify()
+        popup.lift()
+        popup.after_idle(lambda: popup.focus_set() if popup.winfo_exists() else None)
+
+    def _focus_out(self, event):
+        if self.menu is not None:
+            popup = self.menu
+            popup.after(60, lambda: self._close_if_unfocused(popup))
+
+    def _close_if_unfocused(self, popup):
+        if not popup.winfo_exists() or popup is not self.menu:
+            return
+        try:
+            focused = popup.focus_get()
+            if focused is None or not str(focused).startswith(str(popup)):
+                self.close_menu()
+        except tk.TclError:
+            self.close_menu()
+
+    def choose(self, value):
+        self.variable.set(value)
+        self.close_menu()
+        self.refresh_style()
+        self.command(value)
+
+    def close_menu(self):
+        popup = self.menu
+        self.menu = None
+        if popup is not None:
+            try:
+                if popup.winfo_exists():
+                    popup.destroy()
+            except tk.TclError:
+                pass
+
+    def destroy(self):
+        self.close_menu()
+        super().destroy()
+
+
 class Panel:
     """Material You-inspired interface; the original bridge engine is unchanged."""
     def __init__(self):
@@ -423,11 +597,15 @@ class Panel:
         self.a_var = tk.IntVar(value=self.bridge.intensity_a)
         self.b_var = tk.IntVar(value=self.bridge.intensity_b)
         self.enabled_var = tk.BooleanVar(value=False)
-        self.dnd_var = tk.BooleanVar(value=False)
         self.status = tk.StringVar(value="—")
         self.remaining = tk.StringVar(value="0.0 s")
         self.count = tk.StringVar(value="0")
         self.widgets = {}
+        # Keep dropdowns outside the scrollable area so theme refreshes never
+        # destroy widgets that CustomTkinter may still be focusing.
+        self.header = ctk.CTkFrame(self.root, fg_color="transparent")
+        self.header.pack(fill="x", padx=22, pady=(16, 0))
+        self.build_header()
         self.scroll = self.make_scroll()
         self.build()
         self.apply_language()
@@ -464,15 +642,16 @@ class Panel:
             options["text"] = text
         return ctk.CTkLabel(parent, **options)
 
-    def build(self):
-        header=ctk.CTkFrame(self.scroll,fg_color="transparent")
-        header.pack(fill="x",pady=(0,16))
-        self.label(header,"PuppyClicker",color=theme_colour("app_title_text"),role="title").pack(side="left")
+    def build_header(self):
+        header=self.header
+        self.title_widget = self.label(header,"PuppyClicker",color=theme_colour("app_title_text"),role="title")
+        self.title_widget.pack(side="left")
         self.language_codes={("English" if code=="en" else "Íslenska" if code=="is" else code):code for code in TRANSLATIONS}
         self.language_var=tk.StringVar(value=next((name for name,code in self.language_codes.items() if code==self.language),"English"))
-        ctk.CTkOptionMenu(header,values=list(self.language_codes),variable=self.language_var,
-                          command=self.change_language, width=128,corner_radius=14,
-                          fg_color=theme_colour("dropdown_background"),button_color=theme_colour("dropdown_button"),button_hover_color=theme_colour("dropdown_button_hover"),font=theme_font("dropdown")).pack(side="right")
+        self.language_menu = StyledDropdown(
+            header, values=list(self.language_codes), variable=self.language_var,
+            command=self.change_language, width=110)
+        self.language_menu.pack(side="right")
         # Discover themes from themes/*.json; selection is stored in settings.json.
         self.theme_names = {}
         for path in sorted(THEMES_DIR.glob("*.json")):
@@ -494,14 +673,11 @@ class Panel:
         selected_theme = next((name for name, code in self.theme_names.items()
                                if code == current_theme), current_theme)
         self.theme_var = tk.StringVar(value=selected_theme)
-        ctk.CTkOptionMenu(
+        self.theme_menu = StyledDropdown(
             header, values=list(self.theme_names), variable=self.theme_var,
-            command=self.change_theme, width=180, corner_radius=14,
-            fg_color=theme_colour("dropdown_background"),
-            text_color=theme_colour("body_text"),
-            button_color=theme_colour("dropdown_button"),
-            button_hover_color=theme_colour("dropdown_button_hover"),font=theme_font("dropdown")
-        ).pack(side="right", padx=(0, 8))
+            command=self.change_theme, width=110)
+        self.theme_menu.pack(side="right", padx=(0, 8))
+    def build(self):
         self.subtitle=self.label(self.scroll,color=theme_colour("subtitle_text"),role="caption")
         self.subtitle.pack(anchor="w",pady=(0,14))
 
@@ -522,15 +698,9 @@ class Panel:
         self.label(hero,textvariable=self.count,color=theme_colour("click_count_text"),role="caption").pack(anchor="w",padx=22,pady=(0,18))
 
         safety=self.card(self.scroll)
-        line=ctk.CTkFrame(safety,fg_color="transparent")
-        line.pack(fill="x",padx=20,pady=18)
-        self.dnd_label=self.label(line,role="control_heading")
-        self.dnd_label.pack(side="left")
-        ctk.CTkSwitch(line,text="",variable=self.dnd_var,command=self.toggle_dnd,
-                      progress_color=theme_colour("accent"),button_color=theme_colour("switch_thumb")).pack(side="right")
         self.emergency_button=ctk.CTkButton(safety,text="",command=self.emergency,height=46,corner_radius=17,
                           fg_color=theme_colour("emergency_button"),hover_color=theme_colour("emergency_button_hover"),text_color=theme_colour("emergency_button_text"),font=theme_font("button"))
-        self.emergency_button.pack(fill="x",padx=18,pady=(0,18))
+        self.emergency_button.pack(fill="x",padx=18,pady=18)
 
         output=self.card(self.scroll)
         self.output_title=self.label(output,role="section_heading")
@@ -580,7 +750,6 @@ class Panel:
     def apply_language(self):
         self.subtitle.configure(text=self.t("subtitle"))
         self.timer_label.configure(text=self.t("timing"))
-        self.dnd_label.configure(text=self.t("dnd"))
         self.emergency_button.configure(text=self.t("emergency"))
         self.output_title.configure(text=self.t("output"))
         self.a_label.configure(text=self.t("intensity_a"))
@@ -642,6 +811,9 @@ class Panel:
         THEME = updated
         ctk.set_appearance_mode(updated.get("appearance", "dark"))
         self.root.configure(fg_color=theme_colour("window_background"))
+        self.title_widget.configure(text_color=theme_colour("app_title_text"), font=theme_font("title"))
+        for menu in (self.theme_menu, self.language_menu):
+            menu.refresh_style()
         # Remove the entire old scrollable canvas, including its internal
         # window and all drawing primitives, before making the new one.
         old_scroll.destroy()
@@ -653,6 +825,23 @@ class Panel:
         self.log.insert("end", old_log)
         self.log.see("end")
         self.log.configure(state="disabled")
+        # Keep menu identity stable; refresh its choices after edits/new files.
+        names = {}
+        for path in sorted(THEMES_DIR.glob("*.json")):
+            try:
+                data = json.loads(path.read_text(encoding="utf-8"))
+                if isinstance(data.get("colours"), dict):
+                    name = str(data.get("name") or path.stem)
+                    if name in names:
+                        name += f" ({path.stem})"
+                    names[name] = path.stem
+            except (OSError, ValueError, TypeError):
+                continue
+        self.theme_names = names
+        self.theme_menu.set_values(list(names))
+        self.theme_var.set(next((name for name, code in names.items()
+                                 if code == theme_name), theme_name))
+        self.theme_menu.refresh_style()
         self.root.after_idle(lambda: self.restore_scroll(scroll_position))
 
     def restore_scroll(self, position):
@@ -683,11 +872,10 @@ class Panel:
         selected = self.theme_names.get(value)
         if not selected or self._theme_update_pending:
             return
-        # CTkOptionMenu may still be processing its click; defer destruction
-        # until after its callback AND CustomTkinter's queued focus_set callbacks
-        # have finished. Rebuilding earlier destroys the label they target.
+        # Menus live outside the rebuilt scroll container, so queued focus
+        # callbacks still point to valid widgets.
         self._theme_update_pending = True
-        self.root.after(750, lambda: self.finish_theme_change(selected))
+        self.finish_theme_change(selected)
 
     def finish_theme_change(self, selected):
         try:
@@ -714,11 +902,6 @@ class Panel:
 
     def toggle_enabled(self):
         self.bridge.set_enabled(bool(self.enabled_var.get()))
-        with self.bridge.lock:
-            self.enabled_var.set(self.bridge.armed)
-
-    def toggle_dnd(self):
-        self.bridge.set_dnd(bool(self.dnd_var.get()))
         with self.bridge.lock:
             self.enabled_var.set(self.bridge.armed)
 
