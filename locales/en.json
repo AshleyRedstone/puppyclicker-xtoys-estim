@@ -40,5 +40,7 @@
     "Countdown expired: STOP": "Countdown expired: STOP",
     "Application closing": "Application closing",
     "Invalid webhook method": "Invalid webhook method"
-  }
+  },
+  "max_stimulation_a": "Maximum stimulation A",
+  "max_stimulation_b": "Maximum stimulation B"
 }

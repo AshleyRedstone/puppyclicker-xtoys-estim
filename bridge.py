@@ -7,6 +7,7 @@ import queue
 import threading
 import time
 import tkinter as tk
+from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from collections import deque
 from pathlib import Path
 from tkinter import messagebox
@@ -24,9 +25,9 @@ def load_settings():
         data = json.loads(SETTINGS_PATH.read_text(encoding="utf-8"))
         return {"click_seconds": min(10., max(.5, float(data.get("click_seconds", 2)))),
                 "max_remaining": min(120., max(5., float(data.get("max_remaining", 60)))),
-                "language": data.get("language", "en") if data.get("language") in TRANSLATIONS else "en", "theme": data.get("theme", os.getenv("PUPPY_THEME", "lavender")), "channel": data.get("channel", "Both") if data.get("channel") in ("A", "B", "Both") else "Both", "intensity_a": min(100, max(0, int(data.get("intensity_a", 30)))), "intensity_b": min(100, max(0, int(data.get("intensity_b", 30))))}
+                "language": data.get("language", "en") if data.get("language") in TRANSLATIONS else "en", "theme": data.get("theme", os.getenv("PUPPY_THEME", "lavender")), "channel": data.get("channel", "Both") if data.get("channel") in ("A", "B", "Both") else "Both", "intensity_a": min(100, max(0, int(data.get("intensity_a", 30)))), "intensity_b": min(100, max(0, int(data.get("intensity_b", 30)))), "max_stimulation_a": min(100, max(0, int(data.get("max_stimulation_a", 100)))), "max_stimulation_b": min(100, max(0, int(data.get("max_stimulation_b", 100))))}
     except (OSError, ValueError, TypeError):
-        return {"click_seconds": 2., "max_remaining": 60., "language": "en", "theme": os.getenv("PUPPY_THEME", "lavender"), "channel": "Both", "intensity_a": 30, "intensity_b": 30}
+        return {"click_seconds": 2., "max_remaining": 60., "language": "en", "theme": os.getenv("PUPPY_THEME", "lavender"), "channel": "Both", "intensity_a": 30, "intensity_b": 30, "max_stimulation_a": 100, "max_stimulation_b": 100}
 
 # External localisation and theme files live alongside this script.
 BASE_DIR = Path(__file__).resolve().parent
@@ -196,6 +197,8 @@ class Bridge:
         self.channel = settings["channel"]
         self.intensity_a = settings["intensity_a"]
         self.intensity_b = settings["intensity_b"]
+        self.max_stimulation_a = settings["max_stimulation_a"]
+        self.max_stimulation_b = settings["max_stimulation_b"]
         self.lock = threading.RLock()
         self.stop_event = threading.Event()
         self.dnd = False
@@ -203,12 +206,42 @@ class Bridge:
         self.active = False
         self.deadline = 0.0
         self.total_clicks = 0
+        self.last_click_sender = None
+        self.last_click_source = None
+        self.last_click_time = None
         self.connected = False
         self.seen = set()
         self.seen_order = deque(maxlen=5000)
         self.http = requests.Session()
         self.worker = threading.Thread(target=self.run, daemon=True)
         self.ticker = threading.Thread(target=self.tick, daemon=True)
+
+    def hud_snapshot(self):
+        """Read-only state snapshot. Never calls webhook or changes device state."""
+        with self.lock:
+            now = time.monotonic()
+            return {
+                "schema": 1,
+                "connected": self.connected,
+                "enabled": self.armed,
+                "active": self.active,
+                "remaining_seconds": round(max(0.0, self.deadline - now), 2) if self.active else 0.0,
+                "maximum_seconds": self.max_remaining,
+                "click_seconds": self.click_seconds,
+                "channel": self.channel,
+                "intensity_a": self.intensity_a,
+                "intensity_b": self.intensity_b,
+                "max_stimulation_a": self.max_stimulation_a,
+                "max_stimulation_b": self.max_stimulation_b,
+                "output_a": self.scaled_output(self.intensity_a, self.max_stimulation_a),
+                "output_b": self.scaled_output(self.intensity_b, self.max_stimulation_b),
+                "total_clicks": self.total_clicks,
+                "last_click": {
+                    "sender": self.last_click_sender,
+                    "source": self.last_click_source,
+                    "timestamp": self.last_click_time,
+                },
+            }
 
     def emit(self, message):
         self.events.put(('log', message))
@@ -217,9 +250,13 @@ class Bridge:
         return all(os.getenv(k, '').strip() for k in (
             'PUPPY_API_KEY', 'PUPPY_STREAM_URL', 'XTOYS_START_URL', 'XTOYS_STOP_URL'))
 
+    @staticmethod
+    def scaled_output(percent, maximum):
+        return max(0, min(100, (int(percent) * int(maximum) + 50) // 100))
+
     def save_settings(self):
         data = load_settings()
-        data.update(click_seconds=self.click_seconds, max_remaining=self.max_remaining, channel=self.channel, intensity_a=self.intensity_a, intensity_b=self.intensity_b)
+        data.update(click_seconds=self.click_seconds, max_remaining=self.max_remaining, channel=self.channel, intensity_a=self.intensity_a, intensity_b=self.intensity_b, max_stimulation_a=self.max_stimulation_a, max_stimulation_b=self.max_stimulation_b)
         SETTINGS_PATH.write_text(json.dumps(data, indent=2, ensure_ascii=False), encoding="utf-8")
 
     def send_webhook(self, action):
@@ -235,7 +272,11 @@ class Bridge:
         try:
             payload = json.loads(raw) if raw else {}
             if action in ('START', 'UPDATE'):
-                payload.update(action='puppy_' + action.lower(), channel=self.channel, intensity_a=self.intensity_a, intensity_b=self.intensity_b)
+                payload.update(action='puppy_' + action.lower(), channel=self.channel,
+                               intensity_a=self.scaled_output(self.intensity_a, self.max_stimulation_a),
+                               intensity_b=self.scaled_output(self.intensity_b, self.max_stimulation_b),
+                               intensity_percent_a=self.intensity_a, intensity_percent_b=self.intensity_b,
+                               max_stimulation_a=self.max_stimulation_a, max_stimulation_b=self.max_stimulation_b)
             elif action == 'STOP':
                 payload['action'] = 'puppy_stop'
             response = requests.request(method, url, json=payload if method == 'POST' else None,
@@ -294,11 +335,13 @@ class Bridge:
             self.save_settings()
             self.emit(f"Timing updated: {click_seconds:g}s/click, {max_remaining:g}s maximum remaining")
 
-    def update_output(self, channel, intensity_a, intensity_b):
+    def update_output(self, channel, intensity_a, intensity_b, max_stimulation_a, max_stimulation_b):
         with self.lock:
             self.channel = channel
             self.intensity_a = intensity_a
             self.intensity_b = intensity_b
+            self.max_stimulation_a = max_stimulation_a
+            self.max_stimulation_b = max_stimulation_b
             self.save_settings()
             if self.active and self.armed and not self.dnd:
                 if not self.send_webhook("UPDATE"):
@@ -308,7 +351,7 @@ class Bridge:
     def emergency(self):
         self.halt('EMERGENCY STOP: bridge disarmed', latch=True)
 
-    def click(self, event_id):
+    def click(self, event_id, sender=None, source=None):
         with self.lock:
             if event_id is not None:
                 event_id = str(event_id)
@@ -332,7 +375,14 @@ class Bridge:
                 self.deadline = min(max(self.deadline, now) + self.click_seconds,
                                     now + self.max_remaining)
             self.total_clicks += 1
-            self.emit(f'Click received; remaining {max(0, self.deadline - time.monotonic()):.1f}s')
+            sender = str(sender).strip() if sender else 'Anonymous'
+            source_names = {'pound': 'Pound', 'landing': 'Landing page'}
+            source = str(source).strip() if source else ''
+            origin = source_names.get(source.lower(), source or 'Direct')
+            self.last_click_sender = sender
+            self.last_click_source = origin
+            self.last_click_time = time.time()
+            self.emit(f'Click from {sender} · {origin}; remaining {max(0, self.deadline - time.monotonic()):.1f}s')
 
     def handle_message(self, event_type, data, sse_id):
         try:
@@ -351,7 +401,8 @@ class Bridge:
         if body.get('dndSuppressed') is True:
             return
         # Do not treat a missing ID as proof of uniqueness; SSE IDs are an alternative.
-        self.click(body.get('id') or obj.get('id') or sse_id)
+        self.click(body.get('id') or obj.get('id') or sse_id,
+                   sender=body.get('senderUsername'), source=body.get('source'))
 
     def run(self):
         retry = 2
@@ -411,6 +462,41 @@ class Bridge:
     def shutdown(self):
         self.stop_event.set()
         self.halt('Application closing', latch=True)
+
+
+class HudStatusServer:
+    """Localhost-only, read-only JSON status endpoint for the Minecraft HUD."""
+    def __init__(self, bridge, port=8765):
+        self.bridge = bridge
+        self.httpd = None
+        self.thread = None
+        class Handler(BaseHTTPRequestHandler):
+            def do_GET(handler):
+                if handler.path != "/status":
+                    handler.send_error(404)
+                    return
+                data = json.dumps(bridge.hud_snapshot(), ensure_ascii=False).encode("utf-8")
+                handler.send_response(200)
+                handler.send_header("Content-Type", "application/json; charset=utf-8")
+                handler.send_header("Cache-Control", "no-store")
+                handler.send_header("Content-Length", str(len(data)))
+                handler.end_headers()
+                handler.wfile.write(data)
+            def log_message(self, *args):
+                pass
+        try:
+            self.httpd = ThreadingHTTPServer(("127.0.0.1", port), Handler)
+        except OSError as exc:
+            print(f"Minecraft HUD status server unavailable: {exc}")
+            return
+        self.thread = threading.Thread(target=self.httpd.serve_forever, daemon=True)
+        self.thread.start()
+        print(f"Minecraft HUD status available at http://127.0.0.1:{port}/status")
+
+    def close(self):
+        if self.httpd:
+            self.httpd.shutdown()
+            self.httpd.server_close()
 
 
 class StyledDropdown(ctk.CTkFrame):
@@ -590,12 +676,15 @@ class Panel:
         self.root.minsize(630, 740)
         self.events = queue.Queue()
         self.bridge = Bridge(self.events)
+        self.hud_server = HudStatusServer(self.bridge)
         self.language = load_settings()["language"]
         self.channel_var = tk.StringVar(value=self.bridge.channel)
         self.click_var = tk.StringVar(value=f"{self.bridge.click_seconds:g}")
         self.cap_var = tk.StringVar(value=f"{self.bridge.max_remaining:g}")
         self.a_var = tk.IntVar(value=self.bridge.intensity_a)
         self.b_var = tk.IntVar(value=self.bridge.intensity_b)
+        self.max_a_var = tk.IntVar(value=self.bridge.max_stimulation_a)
+        self.max_b_var = tk.IntVar(value=self.bridge.max_stimulation_b)
         self.enabled_var = tk.BooleanVar(value=False)
         self.status = tk.StringVar(value="—")
         self.remaining = tk.StringVar(value="0.0 s")
@@ -711,16 +800,28 @@ class Panel:
         self.channel_menu.pack(fill="x",padx=20,pady=(0,12))
         self.a_label=self.label(output,role="caption")
         self.a_label.pack(anchor="w",padx=20)
-        self.a_value=self.label(output,f"{self.a_var.get()}%",color=theme_colour("intensity_value_text"),role="value")
+        self.a_value=self.label(output,self.intensity_text("a"),color=theme_colour("intensity_value_text"),role="value")
         self.a_value.pack(anchor="e",padx=20)
         self.a_slider=ctk.CTkSlider(output,from_=0,to=100,number_of_steps=100,command=lambda x:self.update_slider("a",x),progress_color=theme_colour("accent"),button_color=theme_colour("slider_thumb"))
         self.a_slider.pack(fill="x",padx=20,pady=(0,12));self.a_slider.set(self.a_var.get())
         self.b_label=self.label(output,role="caption")
         self.b_label.pack(anchor="w",padx=20)
-        self.b_value=self.label(output,f"{self.b_var.get()}%",color=theme_colour("intensity_value_text"),role="value")
+        self.b_value=self.label(output,self.intensity_text("b"),color=theme_colour("intensity_value_text"),role="value")
         self.b_value.pack(anchor="e",padx=20)
         self.b_slider=ctk.CTkSlider(output,from_=0,to=100,number_of_steps=100,command=lambda x:self.update_slider("b",x),progress_color=theme_colour("accent"),button_color=theme_colour("slider_thumb"))
         self.b_slider.pack(fill="x",padx=20,pady=(0,15));self.b_slider.set(self.b_var.get())
+        self.max_a_label=self.label(output,role="caption")
+        self.max_a_label.pack(anchor="w",padx=20)
+        self.max_a_value=self.label(output,str(self.max_a_var.get()),color=theme_colour("intensity_value_text"),role="value")
+        self.max_a_value.pack(anchor="e",padx=20)
+        self.max_a_slider=ctk.CTkSlider(output,from_=0,to=100,number_of_steps=100,command=lambda x:self.update_max_slider("a",x),progress_color=theme_colour("accent"),button_color=theme_colour("slider_thumb"))
+        self.max_a_slider.pack(fill="x",padx=20,pady=(0,12));self.max_a_slider.set(self.max_a_var.get())
+        self.max_b_label=self.label(output,role="caption")
+        self.max_b_label.pack(anchor="w",padx=20)
+        self.max_b_value=self.label(output,str(self.max_b_var.get()),color=theme_colour("intensity_value_text"),role="value")
+        self.max_b_value.pack(anchor="e",padx=20)
+        self.max_b_slider=ctk.CTkSlider(output,from_=0,to=100,number_of_steps=100,command=lambda x:self.update_max_slider("b",x),progress_color=theme_colour("accent"),button_color=theme_colour("slider_thumb"))
+        self.max_b_slider.pack(fill="x",padx=20,pady=(0,15));self.max_b_slider.set(self.max_b_var.get())
         self.output_apply=ctk.CTkButton(output,command=self.apply_output,corner_radius=15,height=40,fg_color=theme_colour("primary_button"),hover_color=theme_colour("primary_button_hover"),text_color=theme_colour("primary_button_text"),font=theme_font("button"))
         self.output_apply.pack(fill="x",padx=20,pady=(0,18))
 
@@ -754,6 +855,8 @@ class Panel:
         self.output_title.configure(text=self.t("output"))
         self.a_label.configure(text=self.t("intensity_a"))
         self.b_label.configure(text=self.t("intensity_b"))
+        self.max_a_label.configure(text=self.t("max_stimulation_a") if self.t("max_stimulation_a") != "max_stimulation_a" else ("Hámarksstyrkur A" if self.language == "is" else "Maximum stimulation A"))
+        self.max_b_label.configure(text=self.t("max_stimulation_b") if self.t("max_stimulation_b") != "max_stimulation_b" else ("Hámarksstyrkur B" if self.language == "is" else "Maximum stimulation B"))
         self.output_apply.configure(text=self.t("apply"))
         self.timing_title.configure(text=self.t("timing"))
         self.widgets["per_click"].configure(text=self.t("per_click"))
@@ -893,12 +996,24 @@ class Panel:
         finally:
             self._theme_update_pending = False
 
+    def intensity_text(self, which):
+        percent = self.a_var.get() if which == "a" else self.b_var.get()
+        maximum = self.max_a_var.get() if which == "a" else self.max_b_var.get()
+        return f"{percent}% ({Bridge.scaled_output(percent, maximum)})"
+
+    def refresh_output_labels(self):
+        self.a_value.configure(text=self.intensity_text("a"))
+        self.b_value.configure(text=self.intensity_text("b"))
+        self.max_a_value.configure(text=str(self.max_a_var.get()))
+        self.max_b_value.configure(text=str(self.max_b_var.get()))
+
     def update_slider(self, which, value):
-        number=int(round(value))
-        if which=="a":
-            self.a_var.set(number);self.a_value.configure(text=f"{number}%")
-        else:
-            self.b_var.set(number);self.b_value.configure(text=f"{number}%")
+        (self.a_var if which == "a" else self.b_var).set(int(round(value)))
+        self.refresh_output_labels()
+
+    def update_max_slider(self, which, value):
+        (self.max_a_var if which == "a" else self.max_b_var).set(int(round(value)))
+        self.refresh_output_labels()
 
     def toggle_enabled(self):
         self.bridge.set_enabled(bool(self.enabled_var.get()))
@@ -914,9 +1029,12 @@ class Panel:
             channel=self.channel_var.get();a=self.a_var.get();b=self.b_var.get()
             if channel not in ("A","B","Both") or not (0<=a<=100 and 0<=b<=100):
                 raise ValueError
-            self.bridge.update_output(channel,a,b)
+            max_a=self.max_a_var.get();max_b=self.max_b_var.get()
+            if not (0 <= max_a <= 100 and 0 <= max_b <= 100):
+                raise ValueError
+            self.bridge.update_output(channel,a,b,max_a,max_b)
         except (ValueError,tk.TclError):
-            messagebox.showerror(self.t("save_title"),"Select A, B or Both and use 0–100%.")
+            messagebox.showerror(self.t("save_title"),"Select A, B or Both and use values from 0 to 100.")
         except OSError as exc:
             messagebox.showerror(self.t("save_title"),str(exc))
 
@@ -950,6 +1068,7 @@ class Panel:
         self.root.after(100,self.refresh)
 
     def close(self):
+        self.hud_server.close()
         self.bridge.shutdown()
         self.root.destroy()
 

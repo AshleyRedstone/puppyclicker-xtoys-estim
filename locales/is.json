@@ -40,5 +40,7 @@
     "Countdown expired: STOP": "Niðurtalningu lokið: STOP",
     "Application closing": "Forritinu lokað",
     "Invalid webhook method": "Ógild vefkrókabeiðni"
-  }
+  },
+  "max_stimulation_a": "Hámarksstyrkur A",
+  "max_stimulation_b": "Hámarksstyrkur B"
 }

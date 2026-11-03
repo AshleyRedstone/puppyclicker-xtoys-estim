@@ -1,9 +1,9 @@
 {
   "click_seconds": 5.0,
   "max_remaining": 120.0,
-  "language": "en",
-  "theme": "nord",
+  "language": "is",
+  "theme": "pink_amethyst",
   "channel": "Both",
-  "intensity_a": 45,
+  "intensity_a": 50,
   "intensity_b": 100
 }
